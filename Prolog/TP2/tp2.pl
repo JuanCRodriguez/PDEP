@@ -218,45 +218,39 @@ esEdilicioOtro(ListaEdilicios):-
 		not(member(edilicio(universidad, _), ListaEdilicios)).
 
 % Influencias
+influenciaDePromesas(construir(ListaEdilicios), -1):-
+		esEdilicioOtro(ListaEdilicios).
 
-influenciaDePromesas(construir(ListaEdilicios), Variacion):-
-		esEdilicioOtro(ListaEdilicios),
-		Variacion is -1.
+influenciaDePromesas(nuevosPuestosDeTrabajo(Cant), 3):-
+		Cant > 50000.
 
-influenciaDePromesas(nuevosPuestosDeTrabajo(Cant), Variacion):-
-		Cant > 50000,
-		Variacion is 3.
-
-influenciaDePromesas(nuevosPuestosDeTrabajo(Cant), Variacion):-
-		Cant < 50000,
-		Variacion is 0.
+influenciaDePromesas(nuevosPuestosDeTrabajo(Cant), 0):-
+		Cant =< 50000.
 
 influenciaDePromesas(inflacion(Min, Max), Variacion):-
 		Variacion is ((Min + Max) / 2) * (-1).
 
-influenciaDePromesas(construir(ListaEdilicios), Variacion):-
-		member(edilicio(hospital, _), ListaEdilicios),
-		Variacion is 2.
+influenciaDePromesas(construir(ListaEdilicios), 2):-
+		member(edilicio(hospital, _), ListaEdilicios).
 
 influenciaDePromesas(construir(ListaEdilicios), Variacion):-
 		member(edilicio(escuela, Cant), ListaEdilicios),
 		Variacion is Cant * 0.10.
 
-
 influenciaDePromesas(construir(ListaEdilicios), Variacion):-
 		member(edilicio(jardin, Cant), ListaEdilicios),
 		Variacion is Cant * 0.10.
 
-influenciaDePromesas(construir(ListaEdilicios), Variacion):-
-		member(edilicio(comisaria, 200), ListaEdilicios),
-		Variacion is 2.
+influenciaDePromesas(construir(ListaEdilicios), 2):-
+		member(edilicio(comisaria, 200), ListaEdilicios).
 
-influenciaDePromesas(construir(ListaEdilicios), Variacion):-
-		member(edilicio(universidad, _), ListaEdilicios),
-		Variacion is 0.
+influenciaDePromesas(construir(ListaEdilicios), 0):-
+		member(edilicio(universidad, _), ListaEdilicios).
 
+
+% Punto 8
 promedioDeCrecimiento(UnPartido, Sumatoria):-
 		partidoDe(_, UnPartido),
-		findall(Variacion, (promete(UnPartido, Promesa), influenciaDePromesas(Promesa, Variacion)), ListaPromedio),
-		sum_list(ListaPromedio, Sum),
+		findall(Variacion, (promete(UnPartido, Promesa), influenciaDePromesas(Promesa, Variacion)), ListaVariaciones),
+		sum_list(ListaVariaciones, Sum),
 		Sumatoria is Sum.
