@@ -52,33 +52,31 @@ describe "Tests de Rick and Morty" {
 		var rick = new Rick()
 		rick.irdeAventura(morty)
 		
+		var valor_esperado = morty.aumentoDemenciaRick() / 2
 		var summer = new Summer(dia = new Date(day=25, month=10, year=2019))
-
-		assert.throwsExceptionWithType(new NoPuedeViajarExcepcion(message = 'Summer no puede viajar ya que no es miercoles'), {
-			rick.irdeAventura(summer)
-		})
+		rick.irdeAventura(summer)
 		assert.that(rick.esPickle())
+		assert.equals(valor_esperado, rick.demencia())
 	}
 	
 	test "Rick se transforma en un pickle ya que no puede viajar con jerry"{
-		var jerry = new Jerry()
+		var morty = new Morty()
+		var lista_familiares = [morty, new Jerry()]
 		var rick = new Rick()
-		assert.throwsExceptionWithType(new NoPuedeViajarExcepcion(message = 'Jerry no puede ir de aventuras'), {
-			rick.irdeAventura(jerry)
-		})
+		var demenciaEsperada = morty.aumentoDemenciaRick() / 2
+		lista_familiares.forEach{familiar => rick.irdeAventura(familiar)}
 		assert.that(rick.esPickle())
+		assert.equals(rick.demencia(), demenciaEsperada)
 	}
 	
 	test "Rick no puede irse de aventura ya que la misma llevaria su demencia a un nivel mayor al permitido"{
 		// la segunda vez no deberia viajar ya que llegaria a 100 de demencia
 		var morty = new Morty()
 		var rick = new Rick()
+		var demenciaEsperada = morty.aumentoDemenciaRick() / 2
 		
 		rick.irdeAventura(morty)
-		var demenciaEsperada = rick.demencia() / 2
-		assert.throwsExceptionWithType(new NoPuedeViajarExcepcion(message='La demencia supero el 100%'), {
-			rick.irdeAventura(morty)
-		})
+		rick.irdeAventura(morty)
 		assert.that(rick.esPickle())
 		assert.equals(rick.demencia(), demenciaEsperada)
 	}
@@ -89,9 +87,7 @@ describe "Tests de Rick and Morty" {
 		var rick = new Rick()
 		
 		var demenciaEsperada = rick.demencia() / 2
-		assert.throwsExceptionWithType(new NoPuedeViajarExcepcion(message='La demencia es menor a 0'), {
-			rick.irdeAventura(beth)
-		})
+		rick.irdeAventura(beth)
 		assert.that(rick.esPickle())
 		assert.equals(rick.demencia(), demenciaEsperada)
 	}

@@ -3,21 +3,25 @@
 class NoPuedeViajarExcepcion inherits Exception { }
 
 class Morty{
+	var property aumentoDemenciaRick = 50
 	var property nombre = "Morty"
 	var disminucionSalud = 30 //Disminucion por irse de aventura
 	var property saludMental = 100
 	
-	method irdeAventura(){
+	method irdeAventura(rick){
+		rick.aumentarDemencia(aumentoDemenciaRick)
 		saludMental -= disminucionSalud
 	}
 }
 
 class Beth{
 	var property nombre = "Beth"
+	var disminucionDemenciaRick = 20
 	var aumentoAfecto = 10 // Aumento por irse de aventura
 	var property afectoPorPadre = 0
 	
-	method irdeAventura(){
+	method irdeAventura(rick){
+		rick.disminuirDemencia(disminucionDemenciaRick)
 		afectoPorPadre += aumentoAfecto
 	}
 }
@@ -27,18 +31,20 @@ class Summer{
 	var aumentoAfecto = 10 // Aumento por irse de aventura
 	var property afectoPorRick = 0
 	var property dia = new Date()  // utilizo el dia de hoy si no se especifica al inicializar
+	var disminucionDemenciaRick = 20
 	
-	method irdeAventura(){
+	method irdeAventura(rick){
 		if (dia.internalDayOfWeek() != 3){
 			throw new NoPuedeViajarExcepcion(message = 'Summer no puede viajar ya que no es miercoles')
 		}
+		rick.disminuirDemencia(disminucionDemenciaRick)
 		afectoPorRick += aumentoAfecto
 	}
 }
 
 class Jerry{
 	var property nombre = "Jerry"
-	method irdeAventura(){ 
+	method irdeAventura(rick){ 
 		throw new NoPuedeViajarExcepcion(message = 'Jerry no puede ir de aventuras')
 	}
 }
@@ -51,10 +57,9 @@ class Rick{
 	
 	method irdeAventura(familiar){
 		try{
-			self.viajarCon(familiar)
+			familiar.irdeAventura(self)
 		} catch e : NoPuedeViajarExcepcion{
 			self.transformarseEnPickle()
-			throw e
 		}
 
 	}
@@ -62,17 +67,6 @@ class Rick{
 	method transformarseEnPickle(){
 		demencia /= 2
 		esPickle = true
-	}
-	
-	method viajarCon(familiar){
-		var cantidadMorty = 50
-		var cantidadBeth = 20
-		var cantidadSummer = cantidadBeth
-		
-		familiar.irdeAventura()
-		if (familiar.nombre() == 'Morty') self.aumentarDemencia(cantidadMorty)
-		if (familiar.nombre() == 'Beth') self.disminuirDemencia(cantidadBeth)
-		if (familiar.nombre() == 'Summer') self.disminuirDemencia(cantidadSummer)
 	}
 	
 	method aumentarDemencia(cantidad){
