@@ -1,0 +1,95 @@
+import models.*
+describe "Tests de Rick and Morty" {
+	
+	test "Morty disminuye su salud mental en 30 unidades y Rick aumenta su demencia en 50 al viajar" {
+		var morty = new Morty()
+		var rick = new Rick()
+		var saludMentalEsperada = morty.saludMental() - 30
+		var demenciaEsperada = rick.demencia() + 50
+		
+		rick.irdeAventura(morty)		
+		
+		assert.equals(rick.demencia(), demenciaEsperada)
+		assert.equals(morty.saludMental(), saludMentalEsperada)
+	}
+	
+	test "Beth aumenta el afecto por el padre en 10 unidades y disminuye la demencia de rick en 20 unidades"{
+		//viajo con morty para aumentar la demencia
+		var morty = new Morty()
+		var rick = new Rick()
+		rick.irdeAventura(morty)
+		
+		var beth = new Beth()
+		var saludMentalEsperada = beth.afectoPorPadre() + 10
+		var demenciaEsperada = rick.demencia() -20 
+		
+		rick.irdeAventura(beth)		
+		
+		assert.equals(rick.demencia(), demenciaEsperada)
+		assert.equals(beth.afectoPorPadre(), saludMentalEsperada)
+	}
+	
+	test "Summer puede viajar ya que es Miercoles, aumenta su afecto por Rick en 10 unidades 
+			y Rick disminuye su demencia en 20 unidades"{
+		//viajo con morty para aumentar la demencia
+		var morty = new Morty()
+		var rick = new Rick()
+		rick.irdeAventura(morty)
+		
+		var summer = new Summer(dia = new Date(day=23, month=10, year=2019))
+		var saludMentalEsperada = summer.afectoPorRick() + 10
+		var demenciaEsperada = rick.demencia() - 20 
+		
+		rick.irdeAventura(summer)		
+		
+		assert.equals(rick.demencia(), demenciaEsperada)
+		assert.equals(summer.afectoPorRick(), saludMentalEsperada) 
+	}
+	
+	test "Summer no puede viajar ya que no es Miercoles y Rick se transforma en un pickle"{
+		//viajo con morty para aumentar la demencia
+		var morty = new Morty()
+		var rick = new Rick()
+		rick.irdeAventura(morty)
+		
+		var summer = new Summer(dia = new Date(day=25, month=10, year=2019))
+
+		assert.throwsExceptionWithType(new NoPuedeViajarExcepcion(message = 'Summer no puede viajar ya que no es miercoles'), {
+			rick.irdeAventura(summer)
+		})
+		assert.that(rick.esPickle())
+	}
+	
+	test "Rick se transforma en un pickle ya que no puede viajar con jerry"{
+		var jerry = new Jerry()
+		var rick = new Rick()
+		assert.throwsExceptionWithType(new NoPuedeViajarExcepcion(message = 'Jerry no puede ir de aventuras'), {
+			rick.irdeAventura(jerry)
+		})
+		assert.that(rick.esPickle())
+	}
+	
+	test "Rick no puede irse de aventura ya que la misma llevaria su demencia a un nivel mayor al permitido"{
+		// la segunda vez no deberia viajar ya que llegaria a 100 de demencia
+		var morty = new Morty()
+		var rick = new Rick()
+		
+		rick.irdeAventura(morty)
+		assert.throwsExceptionWithType(new NoPuedeViajarExcepcion(message='La demencia supero el 100%'), {
+			rick.irdeAventura(morty)
+		})
+		assert.that(rick.esPickle())
+	}
+	
+	test "Rick no puede irse de aventura ya que la misma llevaria su demencia a un nivel menor al permitido"{
+		// Rick no podria viajar con summer o beth ya que su nivel seria menor a 0
+		var beth = new Beth()
+		var rick = new Rick()
+		
+		assert.throwsExceptionWithType(new NoPuedeViajarExcepcion(message='La demencia es menor a 0'), {
+			rick.irdeAventura(beth)
+		})
+		assert.that(rick.esPickle())
+	}
+
+}
