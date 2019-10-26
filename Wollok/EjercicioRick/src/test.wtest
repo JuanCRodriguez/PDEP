@@ -75,10 +75,12 @@ describe "Tests de Rick and Morty" {
 		var rick = new Rick()
 		
 		rick.irdeAventura(morty)
+		var demenciaEsperada = rick.demencia() / 2
 		assert.throwsExceptionWithType(new NoPuedeViajarExcepcion(message='La demencia supero el 100%'), {
 			rick.irdeAventura(morty)
 		})
 		assert.that(rick.esPickle())
+		assert.equals(rick.demencia(), demenciaEsperada)
 	}
 	
 	test "Rick no puede irse de aventura ya que la misma llevaria su demencia a un nivel menor al permitido"{
@@ -86,10 +88,12 @@ describe "Tests de Rick and Morty" {
 		var beth = new Beth()
 		var rick = new Rick()
 		
+		var demenciaEsperada = rick.demencia() / 2
 		assert.throwsExceptionWithType(new NoPuedeViajarExcepcion(message='La demencia es menor a 0'), {
 			rick.irdeAventura(beth)
 		})
 		assert.that(rick.esPickle())
+		assert.equals(rick.demencia(), demenciaEsperada)
 	}
 
 }
