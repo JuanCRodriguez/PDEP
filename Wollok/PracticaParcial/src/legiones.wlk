@@ -2,16 +2,14 @@ class Legion {
 	var miembros
 	
 	method lider() {
-		return miembros.fold(miembros.anyOne().capacidadSusto(), {
-			acum, miembro => acum.max(miembro.capacidadSusto())
-		})
+		return miembros.max {ninio => ninio.capacidadSusto()}
 	}
 	method capacidadSusto(){
-		return miembros.fold(0, {acum, miembro => acum + miembro.capacidadSusto()})
+		return miembros.sum {miembro => miembro.capacidadSusto()}
 	}
 	
 	method caramelos(){
-		return miembro.fold(0, {acum, miembro => acum + miembro.caramelos()})
+		return miembro.sum {miembro => miembro.caramelos()}
 	}
 	
 	method asustar(adulto){

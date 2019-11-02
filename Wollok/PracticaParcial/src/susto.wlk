@@ -49,7 +49,7 @@ class Ninio {
 	
 	method elementos() = elementos
 	
-	method sumatoriaSustoElementos() = elementos.fold(0, {acum, elemento => acum + elemento.cantAsusta()})
+	method sumatoriaSustoElementos() = elementos.sum {elemento => elemento.cantAsusta()}
 	
 	method asustar(adulto){
 		if(!adulto.puedeSerAsustadoPor(self)) throw new Exception()
