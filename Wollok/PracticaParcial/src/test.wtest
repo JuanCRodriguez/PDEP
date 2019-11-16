@@ -1,0 +1,12 @@
+
+
+test "testX" {
+	import susto.*
+	import Indigestion.*
+	import legiones.*
+	var trajes = [new TrajeTerrorifico(), new Maquillaje()]
+	var nino = new Ninio(cantCaramelos = 5, elementos = trajes, actitud = 1, estado = new Sano())
+	var adulto = new Adulto()
+	
+
+}
