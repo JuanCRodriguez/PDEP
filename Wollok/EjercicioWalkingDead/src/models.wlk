@@ -1,7 +1,7 @@
 class Caminante{
 	var sedSangre
-	var somnoliento;
-	var cantDientes;
+	var somnoliento
+	var cantDientes
 	
 	method sed() = sedSangre
 	method estaSomnoliento() = somnoliento
@@ -19,17 +19,16 @@ class Caminante{
 }
 
 class Sobreviviente {
-	var puntosSobreviviente
+	var puntosSobreviviente = 0
 	var resistenciaMinimaAtaque = 12
-	var resistencia
-	var carisma
+	var resistencia = 0
+	var carisma = 0
 	var estado
 	var armas = new List()
 	
 	method poderOfensivo(){
-		var armaRandom = self.armaRandom()
 		var poderPropio = puntosSobreviviente * (1 + carisma / 100)
-		return poderPropio + armaRandom.poderOfensivo()
+		return poderPropio + self.poderOfensivoArmaRandom()
 	}
 	
 	method carisma() = carisma
@@ -41,15 +40,21 @@ class Sobreviviente {
 	method disminuirResistencia(cantDisminucion) {resistencia -= cantDisminucion}
 	
 	method armas() = armas;
-	method agregarArma(nuevaArma){armas.add(nuevaArma)}
+	method agregarArma(nuevaArma) {armas.add(nuevaArma)}
 	method quitarArmas() {armas.clear()}
-	method armaRandom() = armas.anyOne()
 	method tieneArmasRuidosas() = armas.any{arma => arma.esRuidosa()}
 	
 	method estado() = estado
 	method setEstado(nuevoEstado) {estado = nuevoEstado}
 	
 	method puedeAtacar() = resistencia >= resistenciaMinimaAtaque
+	
+	method poderOfensivoArmaRandom(){
+		if(armas.isEmpty()) return 0
+		
+		var armaRandom = armas.anyOne()
+		return armaRandom.poderOfensivo()
+	}
 	
 	method atacar(caminante){ 
 		if(!self.puedeAtacar()) throw new DomainException()
@@ -59,16 +64,18 @@ class Sobreviviente {
 	}
 	
 	method comer(){
-		estado.comer()
+		estado.comer(self)
 	}
 }
 
 class Saludable {
+	var property nombre = "Saludable"
 	method atacar(sobreviviente){}
 	method comer(sobreviviente){}
 }
 
 class Arrebatado {
+	var property nombre = "Arrebatado"
 	var aumentoCarismaAtacar = 1
 	var aumentoCarismaComer = 20
 	var aumentoResistenciaComer = 50
@@ -84,9 +91,10 @@ class Arrebatado {
 }
 
 class Infectado{
+	var property nombre = "Infectado"
 	var disminucionResistenciaAtacar = 3
 	var aumentoResistenciaComer = 40
-	var turnos = 0
+	var property turnos = 0
 	
 	method atacar(sobreviviente){
 		sobreviviente.disminuirResistencia(disminucionResistenciaAtacar)
@@ -108,6 +116,7 @@ class Infectado{
 }
 
 class Desmayado {
+	var property nombre = "Desmayado"
 	method atacar(sobreviviente){}
 	method comer(sobreviviente){
 		sobreviviente.setEstado(new Saludable())
@@ -154,31 +163,37 @@ class Predador inherits Sobreviviente {
 
 class GrupoSobreviviente{
 	var integrantes = new Set()
+	var ubicacion = "Buenos Aires"
 	
 	method integrantes() = integrantes
 	method integranteRandom() = integrantes.anyOne()
 	method atacantes() = integrantes.filter{integrante => integrante.puedeAtacar()}
+	method integrantesJodidos() = integrantes.filter {integrante => integrante.resistencia() <= 40}
+	method atacanteRandom() = self.atacantes().anyOne()
 	method integranteMasDebil() = integrantes.min {integrante => integrante.poderOfensivo()}
 	method lider() = integrantes.max {integrante => integrante.carisma()}
 	
 	method poderOfensivo(){
 		var carismaLider = self.lider().carisma()
 		var poderAtacantes = self.atacantes().sum {integrante => integrante.poderOfensivo()}
-		return carismaLider + poderAtacantes
+		return carismaLider * poderAtacantes
 	} 
-
+	
+	method puedeTomarLugar(lugar){
+		return lugar.puedeSerTomado(self)
+	}
+	
 	method tomarLugar(lugar){
-		if(!lugar.puedeSerTomadoPor(self)) throw new DomainException()
-		
-		
-		
-		lugar.tomarPor(self)
+		if(!self.puedeTomarLugar(lugar)){
+			self.eliminarIntegranteMasDebil()
+			self.pasarAInfectado(self.integrantesJodidos())
+		}else{
+			self.moverseHacia(lugar)
+			lugar.caminantes().forEach{caminante => self.atacanteRandom().atacar(caminante)}
+			lugar.tomarPor(self)
+		}
 	}
-	
-	method moverseHacia(lugar){
-		
-	}
-	
+
 	method comer(){
 		integrantes.forEach {integrante => integrante.comer()}
 	}
@@ -186,12 +201,27 @@ class GrupoSobreviviente{
 	method tieneArmasRuidosas(){
 		return integrantes.any {integrante => integrante.tieneArmasRuidosas()}
 	}
+	
+	method ubicacion() = ubicacion
+	method moverseHacia(lugar) {ubicacion = lugar.ubicacion()}
+	
+	method eliminarIntegranteMasDebil(){
+		integrantes.remove(self.integranteMasDebil())
+	}	
+	
+	method pasarAInfectado(_integrantes){
+		_integrantes.forEach{integrante => integrante.setEstado(new Infectado())}
+	}
+	
 }
 
 class Lugar{
 	var caminantes
+	var property ubicacion = "La Plata"
 	
-	method puedeSerTomadoPor(grupo) = grupo.poderOfensivo() > self.poderCorrosivo()
+	method puedeSerTomado(grupo) {
+		return grupo.poderOfensivo() > self.poderCorrosivo() && self.puedeSerTomadoEspecifico(grupo)
+	}
 	method tomarPor(grupo)
 	
 	method caminantes() = caminantes
@@ -201,8 +231,8 @@ class Lugar{
 class Prision inherits Lugar{
 	var pabellones
 	var armas
-	override method puedeSerTomadoPor(grupo){
-		return (grupo.poderOfensivo() >= pabellones * 2) && super(grupo)
+	method puedeSerTomadoEspecifico(grupo){
+		return (grupo.poderOfensivo() >= pabellones * 2)
 	}
 	
 	override method tomarPor(grupo){
@@ -212,6 +242,10 @@ class Prision inherits Lugar{
 
 class Granja inherits Lugar {
 	
+	method puedeSerTomadoEspecifico(grupo){
+		return true
+	}
+	
 	override method tomarPor(grupo){
 		grupo.comer()
 	}
@@ -219,8 +253,9 @@ class Granja inherits Lugar {
 
 class Bosque inherits Lugar {
 	var tieneNiebla
-	override method puedeSerTomadoPor(grupo){
-		return !grupo.tieneArmasRuidosas() && super(grupo)
+	
+	method puedeSerTomadoEspecifico(grupo){
+		return !grupo.tieneArmasRuidosas()
 	}
 	
 	override method tomarPor(grupo){
