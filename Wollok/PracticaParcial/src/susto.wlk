@@ -1,5 +1,3 @@
-import legiones.Legion
-
 class Maquillaje {
 	var property cantAsusta = 3
 }
@@ -71,8 +69,8 @@ class Adulto {
 	method puedeSerAsustadoPor(ninio) = ninio.capacidadSusto() > self.tolerancia()
 	
 	method asustarse(ninio){
-		if(ninio.caramelos() > cantCaramelosMinima) cantVecesAsustado += 1
 		self.entregarCaramelos(ninio)
+		if(ninio.caramelos() > cantCaramelosMinima) cantVecesAsustado += 1
 	}
 	
 	method cantCaramelos() = self.tolerancia() / 2

@@ -1,28 +1,30 @@
-class Legion {
-	var miembros
+import susto.Ninio
+
+class Legion inherits Ninio{
+	var miembros = new List()
 	
 	method lider() {
-		return miembros.max {ninio => ninio.capacidadSusto()}
+		try{
+			return miembros.max {ninio => ninio.capacidadSusto()}
+		}catch e{
+			throw new DomainException(message = "No hay lider")
+		}
 	}
-	method capacidadSusto(){
+	
+	override method capacidadSusto(){
 		return miembros.sum {miembro => miembro.capacidadSusto()}
 	}
 	
-	method caramelos(){
-		return miembro.sum {miembro => miembro.caramelos()}
-	}
-	
-	method asustar(adulto){
-		if(!adulto.puedeSerAsustadoPor(self)) throw new Exception()
-		adulto.asustarse(self)
+	override method caramelos(){
+		return miembros.sum {miembro => miembro.caramelos()}
 	}
 		
-	method aumentarCaramelos(cantidad){
+	override method aumentarCaramelos(cantidad){
 		self.lider().aumentarCaramelos(cantidad)
 	}
 	
 	method crearLegion(conjuntoNinios){
-		if(conjuntoNinios.size() <= 2) throw new Exception()
+		if(conjuntoNinios.size() < 2) throw new DomainException()
 		miembros = conjuntoNinios
 	}	
 }

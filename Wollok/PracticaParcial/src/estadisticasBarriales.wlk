@@ -1,4 +1,4 @@
-class estadisticasBarriales{
+class EstadisticasBarriales{
 	var ninios = new List()
 	
 	method top3Caramelos() = self._ordenarPorCaramelos().take(3)
@@ -16,7 +16,7 @@ class estadisticasBarriales{
 	}
 	
 	method _equipamientoSinRepetir(_lista){
-		var lista = _lista.map{ninio => ninio.equipamiento()}.flatten()
+		var lista = _lista.map{ninio => ninio.elementos()}.flatten()
 		return lista.withoutDuplicates()
 	}
 }
