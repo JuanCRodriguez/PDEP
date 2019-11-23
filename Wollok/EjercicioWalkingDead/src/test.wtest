@@ -1,0 +1,197 @@
+import models.*
+
+describe "Tests de WalkingDead" {
+	test "Seleccionar de un grupo sus atacantes" {
+		var unSobreviviente = new Sobreviviente(resistencia = 10, estado = new Saludable()) // no puede atacar
+		var otroSobreviviente = new Sobreviviente(resistencia = 15, estado = new Saludable())
+		var grupoSobrevivientes = new GrupoSobreviviente(integrantes = [unSobreviviente, otroSobreviviente])
+		var atacantes = grupoSobrevivientes.atacantes()
+
+		assert.equals(atacantes.head().resistencia(), 15)
+	}
+	
+	test "Una persona arrebatada ataca a un caminante"{
+		var unSobreviviente = new Sobreviviente(resistencia = 15, estado = new Arrebatado())
+		var caminante = new Caminante()
+		
+		unSobreviviente.atacar(caminante)
+		assert.equals(unSobreviviente.resistencia(), 13)
+		assert.equals(unSobreviviente.carisma(), 1) //le sube el carisma porque esta arrebatado
+	}
+	
+	test "Una persona infectada ataca a un caminante"{
+		var unSobreviviente = new Sobreviviente(resistencia = 100, estado = new Infectado())
+		var caminante = new Caminante()
+		var resistenciaEsperada = 100
+		
+		6.times{ _ => 
+			unSobreviviente.atacar(caminante);
+			resistenciaEsperada -= 5;
+			assert.equals(unSobreviviente.resistencia(), resistenciaEsperada);
+		}
+		assert.equals(unSobreviviente.estado().nombre(), "Desmayado")
+	}
+	
+	test "una persona saludable o desmayada ataca a un caminante"{
+		var unSobreviviente = new Sobreviviente(resistencia = 15, estado = new Saludable())
+		var caminante = new Caminante()
+		unSobreviviente.atacar(caminante)
+		assert.equals(unSobreviviente.resistencia(), 13)
+		
+		unSobreviviente = new Sobreviviente(resistencia = 15, estado = new Desmayado())
+		unSobreviviente.atacar(caminante)
+		assert.equals(unSobreviviente.resistencia(), 13)
+	}
+	
+	test "Poder ofensivo de un sobreviviente"{
+		var sobreviviente = new Sobreviviente(resistencia = 150, puntosSobreviviente = 5, estado = new Saludable(), carisma = 5)
+		var arma = new Arma(tipo = armaSilenciosa, calibre = 5, potenciaDestructiva = 5)
+		sobreviviente.agregarArma(arma)
+		
+		var poderEsperadoArma = 5 *2 + 5
+		var poderEsperadoSobreviviente = 5 * (1 + 5 / 100) + poderEsperadoArma
+		assert.equals(arma.poderOfensivo(), poderEsperadoArma)
+		assert.equals(sobreviviente.poderOfensivo(), poderEsperadoSobreviviente)
+	}
+	
+	test "Poder ofensivo total de un grupo"{
+		var sobreviviente1 = new Sobreviviente(resistencia = 150, puntosSobreviviente = 5, estado = new Saludable(), carisma = 5)
+		var sobreviviente2 = new Sobreviviente(resistencia = 15, puntosSobreviviente = 10, estado = new Saludable())
+		var sobreviviente3 = new Sobreviviente(resistencia = 10, puntosSobreviviente = 50, estado = new Saludable())
+		var arma1 = new Arma(tipo = armaSilenciosa, calibre = 5, potenciaDestructiva = 5)
+		var arma2 = new Arma(tipo = armaSilenciosa, calibre = 4, potenciaDestructiva = 9)
+		sobreviviente1.agregarArma(arma1)
+		sobreviviente2.agregarArma(arma2)
+		
+		var poder_esperado = (sobreviviente1.poderOfensivo() + sobreviviente2.poderOfensivo()) * sobreviviente1.carisma()
+		
+		var integrantes = [sobreviviente1, sobreviviente2, sobreviviente3]
+		var grupo = new GrupoSobreviviente(integrantes = integrantes)
+		assert.equals(grupo.poderOfensivo(), poder_esperado)
+	}
+	
+	test "Un sobreviviente Infectado come"{
+		var sobreviviente = new Sobreviviente(resistencia = 100, estado = new Infectado())
+		sobreviviente.comer()
+		
+		assert.equals(sobreviviente.estado().nombre(), "Saludable")
+		assert.equals(sobreviviente.resistencia(), 140)
+		
+		sobreviviente = new Sobreviviente(resistencia = 100, estado = new Infectado())
+		var caminante = new Caminante()
+		var resistenciaEsperada = 100
+		4.times{i => 
+			sobreviviente.atacar(caminante);
+			resistenciaEsperada -= 5;
+			assert.equals(sobreviviente.estado().turnos(), i);
+		}
+		sobreviviente.comer()
+		resistenciaEsperada += 40
+		assert.equals(sobreviviente.estado().turnos(), 0)
+		assert.equals(sobreviviente.resistencia(), resistenciaEsperada)
+	}
+	
+	test "Un sobreviviente arrebatado come"{
+		var sobreviviente = new Sobreviviente(resistencia = 100, estado = new Arrebatado())
+		sobreviviente.comer()
+		assert.equals(sobreviviente.resistencia(), 150)
+		assert.equals(sobreviviente.carisma(), 20)
+	}
+	
+	test "Un sobreviviente desmayado come"{
+		var sobreviviente = new Sobreviviente(resistencia = 100, estado = new Desmayado())
+		sobreviviente.comer()
+		assert.equals(sobreviviente.estado().nombre(), "Saludable")
+	}
+	
+	test "Un grupo puede tomar un lugar"{
+		var sobreviviente1 = new Sobreviviente(resistencia = 150, puntosSobreviviente = 5, estado = new Saludable(), carisma = 5)
+		var sobreviviente2 = new Sobreviviente(resistencia = 15, puntosSobreviviente = 10, estado = new Saludable())
+		var sobreviviente3 = new Sobreviviente(resistencia = 10, puntosSobreviviente = 500, estado = new Saludable())
+		var arma1 = new Arma(tipo = armaSilenciosa, calibre = 5, potenciaDestructiva = 5)
+		var arma2 = new Arma(tipo = armaSilenciosa, calibre = 4, potenciaDestructiva = 9)
+		sobreviviente1.agregarArma(arma1)
+		sobreviviente2.agregarArma(arma2)
+		var integrantes = [sobreviviente1, sobreviviente2, sobreviviente3]
+		var grupo = new GrupoSobreviviente(integrantes = integrantes)
+		
+		var caminante1 = new Caminante(sedSangre = 5, somnoliento = false, cantDientes = 5)
+		var caminante2 = new Caminante(sedSangre = 1, somnoliento = true, cantDientes = 0)
+		var lugar = new Prision(caminantes = [caminante1, caminante2], pabellones = 5, armas = [new Arma(tipo = armaRuidosa, calibre = 4, potenciaDestructiva = 9)])
+		
+		var poderCorrosivoEsperado = 17
+		var poderOfensivoEsperado = (sobreviviente1.poderOfensivo() + sobreviviente2.poderOfensivo()) * sobreviviente1.carisma()
+		
+		assert.that(lugar.puedeSerTomado(grupo))
+		assert.equals(lugar.poderCorrosivo(), poderCorrosivoEsperado)
+		assert.equals(grupo.poderOfensivo(), poderOfensivoEsperado)
+	}
+	
+	test "El integrante mas debil de un grupo"{
+		var sobreviviente1 = new Sobreviviente(resistencia = 150, puntosSobreviviente = 5, estado = new Saludable(), carisma = 5)
+		var sobreviviente2 = new Sobreviviente(resistencia = 15, puntosSobreviviente = 10, estado = new Saludable())
+		var sobreviviente3 = new Sobreviviente(resistencia = 10, puntosSobreviviente = 0, estado = new Desmayado())
+		var arma1 = new Arma(tipo = armaSilenciosa, calibre = 5, potenciaDestructiva = 5)
+		var arma2 = new Arma(tipo = armaSilenciosa, calibre = 4, potenciaDestructiva = 9)
+		sobreviviente1.agregarArma(arma1)
+		sobreviviente2.agregarArma(arma2)
+		var integrantes = [sobreviviente1, sobreviviente2, sobreviviente3]
+		var grupo = new GrupoSobreviviente(integrantes = integrantes)
+		
+		var integranteMasDebil = grupo.integranteMasDebil()
+		assert.equals(integranteMasDebil, sobreviviente3)
+	}
+	
+	test "El grupo toma un lugar"{
+		var sobreviviente1 = new Sobreviviente(resistencia = 150, puntosSobreviviente = 5, estado = new Saludable(), carisma = 5)
+		var sobreviviente2 = new Sobreviviente(resistencia = 15, puntosSobreviviente = 10, estado = new Saludable())
+		var sobreviviente3 = new Sobreviviente(resistencia = 10, puntosSobreviviente = 50, estado = new Saludable())
+		var arma1 = new Arma(tipo = armaSilenciosa, calibre = 5, potenciaDestructiva = 5)
+		var arma2 = new Arma(tipo = armaSilenciosa, calibre = 4, potenciaDestructiva = 9)
+		sobreviviente1.agregarArma(arma1)
+		sobreviviente2.agregarArma(arma2)
+		sobreviviente3.agregarArma(arma1)
+		var integrantes = [sobreviviente1, sobreviviente2, sobreviviente3]
+		var grupo = new GrupoSobreviviente(integrantes = integrantes)
+		
+		var caminante1 = new Caminante(sedSangre = 5, somnoliento = false, cantDientes = 5)
+		var caminante2 = new Caminante(sedSangre = 1, somnoliento = true, cantDientes = 0)
+		var lugar = new Bosque(caminantes = [caminante1, caminante2], tieneNiebla = true)
+
+		grupo.tomarLugar(lugar)
+		assert.equals(grupo.ubicacion(), lugar.ubicacion())
+		assert.that(grupo.integrantes().any{integrante => integrante.armas().isEmpty()}) //alguien se quedo sin armas porque hay niebla
+		
+	}
+	
+	test "El grupo no puede tomar un lugar"{
+		var sobreviviente1 = new Sobreviviente(resistencia = 45, puntosSobreviviente = 5, estado = new Saludable(), carisma = 1)
+		var sobreviviente2 = new Sobreviviente(resistencia = 30, puntosSobreviviente = 10, estado = new Saludable())
+		var sobreviviente3 = new Sobreviviente(resistencia = 10, puntosSobreviviente = 0, estado = new Desmayado())
+		var arma1 = new Arma(tipo = armaSilenciosa, calibre = 5, potenciaDestructiva = 5)
+		var arma2 = new Arma(tipo = armaSilenciosa, calibre = 4, potenciaDestructiva = 9)
+		sobreviviente1.agregarArma(arma1)
+		sobreviviente2.agregarArma(arma2)
+		var integrantes = [sobreviviente1, sobreviviente2, sobreviviente3]
+		var grupo = new GrupoSobreviviente(integrantes = integrantes)
+		
+		var caminante1 = new Caminante(sedSangre = 50, somnoliento = false, cantDientes = 5)
+		var caminante2 = new Caminante(sedSangre = 10, somnoliento = true, cantDientes = 5)
+		var lugar = new Prision(caminantes = [caminante1, caminante2], pabellones = 10, armas = [new Arma(tipo = armaRuidosa, calibre = 4, potenciaDestructiva = 9)])
+		grupo.tomarLugar(lugar)
+		
+		assert.notThat(grupo.integrantes().contains(sobreviviente3)) //se perdio el integrante mas debil
+		assert.equals(sobreviviente2.estado().nombre(), "Infectado") // paso a infectado por tener menos de 40 puntos
+		assert.equals(sobreviviente1.estado().nombre(), "Saludable") // no le paso nada
+	}
+}
+
+//4)Personaje solitario
+//¿Qué pasaría si hay un sobreviviente que no quiere trabajar en grupo, y quisiera tomar un lugar solo? 
+//Deberia definir que sucede con metodos del estilo integranteJodido y integranteMasDebil y las penalizaciones en caso de no poder tomar el lugar ya que no habria integrantes
+
+//¿Debería hacer cambios en su modelo de objetos? ¿Cualés? 
+// agregar los metodos puedeTomarLugar, tomarLugar y los metodos de integrantes al sobreviviente
+
+//¿Qué concepto lo ayudaría con esto y por qué?
+//Polimorfismo ya que un Sobreviviente y un Grupo entenderian los mismos metodos
