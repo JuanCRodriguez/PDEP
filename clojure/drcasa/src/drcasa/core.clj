@@ -1,5 +1,10 @@
-(ns drcasa.core)
-(require '[clojure.core.reducers :as r])
+;(ns drcasa.core)
+;(require '[clojure.core.reducers :as r])(
+;(require '[drcasa.core] :as i)
+
+(defn flip 
+	[f arg1, arg2]
+	(f arg2 arg1))
 
 (defprotocol Enfermedad
 	(esAgresiva [self persona])
@@ -8,9 +13,9 @@
 (defprotocol _EnfermedadInfecciosa
 	(reproducirse [self]))
 
+(defprotocol _EnfermedadAutoInmune
+	(aumentarDia [self]))
 
-(defn flip [f val1 val2]
-	(f val2 val1))
 
 (defn pasarDias [persona dias] (dotimes [n dias] ()))
 
@@ -21,7 +26,8 @@
 (defrecord Persona [nombre temperatura celulas enfermedades]
 	_Persona
 	(contraerEnfermedad [self enfermedad] (update-in self [:enfermedades] conj enfermedad))
-	(pasarDia [self] (r/fold (partial flip afectarPersona self) (:enfermedades self)))
+	(pasarDia [self] (map (partial flip afectarPersona self) (:enfermedades self)))
+	(aumentarDiaEnfermedad [self enfermedades] )
 	)
 
 (defn aumentarTemperatura [persona cuanto] (update persona :temperatura + cuanto))
@@ -38,7 +44,9 @@
 (defrecord EnfermedadAutoInmune [nombre celulasAmenazadas cantDias]
 	Enfermedad
 	(esAgresiva [_ _] (>= cantDias 30))
-	(afectarPersona [self persona] (disminuirCelulas persona (:celulasAmenazadas self))))
+	(afectarPersona [self persona] ((comp(partial disminuirCelulas persona) :celulasAmenazadas aumentarDia) self))
+	_EnfermedadAutoInmune
+	(aumentarDia [self] (update self :cantDias + 1)))
 
 (def unaMalaria (->EnfermedadInfecciosa "Malaria" 500))
 (def otraMalaria (->EnfermedadInfecciosa "Malaria" 800))
@@ -49,3 +57,4 @@
 (def logan (->Persona "Logan" 35 3000000 [unaMalaria otitis lupus]))
 (def frank (->Persona "Frank" 36 3500000 []))
 
+(filter (fn [x] (instance? EnfermedadAutoInmune x)) (:enfermedades logan))
